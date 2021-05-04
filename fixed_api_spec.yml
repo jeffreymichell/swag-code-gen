@@ -1,0 +1,1286 @@
+swagger: '2.0'
+info:
+  title: BP_EligibilityBenefits
+  version: v1.0
+schemes:
+  - https
+paths:
+  /member/eligibilitybnfts:
+    post:
+      description: 'orchestrate the calls to various back end system layer services to get 270/271 corresponding information including Eligibility, Benefits , Totals and COB for requested member demographics.'
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - name: client_id
+          required: true
+          in: header
+          type: string
+        - name: client_secret
+          required: true
+          in: header
+          type: string
+        - in: body
+          name: request
+          schema:
+            $ref: '#/definitions/request'
+      responses:
+        '200':
+          description: Response body
+          schema:
+            $ref: '#/definitions/response'
+        '400':
+          description: ''
+          x-amf-mediaType: application/json
+          schema:
+            $ref: '#/definitions/errorResponseType'
+        '401':
+          description: Unauthorized or invalid client application credentials
+        '404':
+          description: ''
+          x-amf-mediaType: application/json
+          schema:
+            $ref: '#/definitions/errorResponseType'
+        '500':
+          description: 'Bad response from authorization server, or WSDL SOAP Fault error'
+          x-amf-mediaType: application/json
+          schema:
+            $ref: '#/definitions/errorResponseType'
+        '501':
+          description: ''
+          x-amf-mediaType: application/json
+          schema:
+            $ref: '#/definitions/errorResponseType'
+        '503':
+          description: ''
+          x-amf-mediaType: application/json
+          schema:
+            $ref: '#/definitions/errorResponseType'
+definitions:
+  request:
+    type: object
+    additionalProperties: true
+    required:
+      - headerArea
+      - payloadArea
+    properties:
+      headerArea:
+        $ref: '#/definitions/reqHeaderAreaType'
+      payloadArea:
+        type: object
+        additionalProperties: true
+        required:
+          - subscriberInfo
+          - patientInfo
+          - serviceTypeCd
+        properties:
+          subscriberInfo:
+            description: subscriber information under given contract number
+            type: object
+            additionalProperties: true
+            required:
+              - contract
+            properties:
+              group:
+                type: string
+              name:
+                $ref: '#/definitions/nameType'
+              contract:
+                $ref: '#/definitions/contractType'
+          patientInfo:
+            description: patient demographics information thats part of the search in member ship systems.
+            type: object
+            additionalProperties: true
+            required:
+              - personInfo
+            properties:
+              relCode:
+                type: string
+              personInfo:
+                type: object
+                additionalProperties: true
+                required:
+                  - name
+                  - dob
+                properties:
+                  name:
+                    $ref: '#/definitions/nameType'
+                  dob:
+                    type: string
+                  gender:
+                    type: string
+              mbrID:
+                type: string
+          eligPeriod:
+            description: optional eligibility period for which member record would be searched in back end.
+            type: object
+            additionalProperties: true
+            required:
+              - endDate
+              - startDate
+            properties:
+              endDate:
+                type: string
+                format: date
+              startDate:
+                type: string
+                format: date
+          serviceTypeCd:
+            description: service type code for the benefits
+            type: string
+  response:
+    type: object
+    additionalProperties: true
+    required:
+      - headerArea
+      - payloadArea
+    properties:
+      headerArea:
+        $ref: '#/definitions/respHeaderAreaType'
+      payloadArea:
+        type: object
+        additionalProperties: true
+        required:
+          - ctrctSource
+          - memberflags
+          - contract
+          - groupNumber
+          - planNameDesc
+          - subscriberInfo
+          - patientInfo
+          - mbrActiveDates
+          - bnftInfo
+          - mbrTotals
+          - cobInfo
+        properties:
+          ctrctSource:
+            description: contract source found from back end like BCN/MOS/IKA/NASCO
+            type: string
+          memberflags:
+            description: 'The membership flags that would be Y/N for various scenarios like member active, contract exists etc.,'
+            type: object
+            additionalProperties: true
+            required:
+              - ctrctExists
+              - mbrMultipleFound
+              - cobIndicator
+              - ctrctActive
+            properties:
+              mbrExists:
+                description: member found indicator in back end member ship system
+                type: boolean
+              ctrctExists:
+                description: contract exists indicator in the back end membership systems.
+                type: boolean
+              mbrMultipleFound:
+                description: Indicator Y/N based on whether multiple members found with the given member search parameters
+                type: boolean
+              cobIndicator:
+                description: COB exists indicator for this member
+                type: boolean
+              mbrActive:
+                description: member active/inactive indicator
+                type: boolean
+              ctrctActive:
+                description: contract number active / inactive indicator.
+                type: boolean
+          contract:
+            description: contract number details
+            type: object
+            additionalProperties: true
+            required:
+              - number
+            properties:
+              extent:
+                type: string
+              prefix:
+                type: string
+              number:
+                type: string
+          groupNumber:
+            description: Group Number
+            type: string
+          planId:
+            description: Plan ID
+            type: string
+          planName:
+            description: Plan name for the associated group
+            type: string
+          planNameDesc:
+            description: Plan name description or Insurance Type
+            type: string
+          subscriberInfo:
+            description: subscriber information under given contract number
+            type: object
+            additionalProperties: true
+            required:
+              - name
+              - dob
+              - gender
+            properties:
+              relCode:
+                description: relation ship code for the subscriber
+                type: string
+              name:
+                description: all name fields for the member/subscriber
+                type: object
+                additionalProperties: true
+                required:
+                  - first
+                  - last
+                properties:
+                  suffix:
+                    type: string
+                  prefix:
+                    type: string
+                  first:
+                    type: string
+                  last:
+                    type: string
+                  middle:
+                    type: string
+              address:
+                $ref: '#/definitions/addressType'
+              dob:
+                description: Date of birth for the member/subscriber
+                type: string
+              gender:
+                description: Gender for the member/subscriber
+                type: string
+              phoneNumber:
+                description: Primary phone number for the member
+                type: string
+          patientInfo:
+            description: patient demographics information thats part of the search in member ship systems.
+            type: object
+            additionalProperties: true
+            required:
+              - name
+              - dob
+              - gender
+            properties:
+              relCode:
+                description: relation ship code for the subscriber
+                type: string
+              name:
+                description: all name fields for the member/subscriber
+                type: object
+                additionalProperties: true
+                required:
+                  - first
+                  - last
+                properties:
+                  suffix:
+                    type: string
+                  prefix:
+                    type: string
+                  first:
+                    type: string
+                  last:
+                    type: string
+                  middle:
+                    type: string
+              address:
+                $ref: '#/definitions/addressType'
+              dob:
+                description: Date of birth for the member/subscriber
+                type: string
+              gender:
+                description: Gender for the member/subscriber
+                type: string
+              phoneNumber:
+                description: Primary phone number for the member
+                type: string
+          mbrActiveDates:
+            description: member active dates
+            type: object
+            additionalProperties: true
+            required:
+              - expirationDate
+              - effectiveDate
+            properties:
+              expirationDate:
+                description: member coverage expiration  date (9999 for open ended)
+                type: string
+                format: date
+              graceCd:
+                description: Grace code
+                type: string
+              effectiveCd:
+                description: member effective code
+                type: string
+              effectiveDate:
+                description: member coverage effective start date
+                type: string
+                format: date
+              gracePeriod:
+                description: Grace Period for Blling
+                type: string
+                format: date
+              paidToDate:
+                description: member effective code
+                type: string
+                format: date
+          bnftKey:
+            description: Benefit Keys information for Benefit Data for the associated group
+            type: object
+            additionalProperties: true
+            properties:
+              shildKey:
+                description: 'shield key for the benefit keys for the nonMOS, non-NASCO'
+                type: string
+              crossKey:
+                description: 'cross key for the benefit keys for the nonMOS, non-NASCO'
+                type: string
+              commonKey:
+                description: 'common key for the benefit keys for the nonMOS, non-NASCO'
+                type: string
+              bnftPkgId:
+                description: benefit key package ID for the MOS benefits data
+                type: string
+              bnftString:
+                description: benefit key for the NaSCO benefits data
+                type: string
+          bnftInfo:
+            description: Benefit Keys information for Benefit Data for the associated group
+            type: object
+            additionalProperties: true
+            required:
+              - serviceTypeCd
+              - otherbnftInfo
+            properties:
+              serviceTypeCd:
+                description: service type code for the benefits
+                type: string
+              otherbnftInfo:
+                $ref: '#/definitions/otherBnftInfoType'
+          mbrTotals:
+            $ref: '#/definitions/mbrTotals'
+          cobInfo:
+            description: COB Info for this member if exists
+            type: object
+            additionalProperties: true
+            required:
+              - ctrctCOBInfo
+              - group
+              - ctrctNum
+              - ctrctSource
+              - cobOtherCovInfo
+            properties:
+              ctrctCOBInfo:
+                $ref: '#/definitions/ctrctCOBInfo'
+              cobSubscriberInfo:
+                $ref: '#/definitions/cobSubscriberInfo'
+              group:
+                description: group number
+                type: string
+              purgeDate:
+                description: purge date
+                type: string
+              destination:
+                description: destination
+                type: string
+              ctrctNum:
+                description: contract number
+                type: object
+                additionalProperties: true
+                required:
+                  - number
+                properties:
+                  extent:
+                    type: string
+                  prefix:
+                    type: string
+                  number:
+                    type: string
+              ctrctSource:
+                description: contract source such as BCN/MOS/NASCO
+                type: string
+              lob:
+                description: Line of business code
+                type: string
+              cobOtherCovInfo:
+                $ref: '#/definitions/cobOtherCovInfo'
+  errorResponseType:
+    example:
+      messageId: mockErrorResponse
+      systemMessage:
+        - code: INV
+          source: bpeligibilitybenefits
+          additionalInfo: No Data Found
+    type: object
+    additionalProperties: true
+    required:
+      - systemMessage
+      - messageId
+    properties:
+      systemMessage:
+        type: array
+        items:
+          $ref: '#/definitions/systemMessageType'
+      systemEnvironmentCode:
+        $ref: '#/definitions/systemEnvironmentEnum'
+      messageId:
+        description: |-
+
+          The MessageId provides a place to carry a Globally Unique Identifier (GUID) that will make each Schema instance uniquely identifiable.  
+          This is a critical success factor to enable software developers to use the Globally Unique Identifier (GUID) to build the following services or capabilities:
+          1. Legally binding transactions,
+          2. Transaction logging,
+          3. Exception handling,
+          4. Re-sending,
+          5. Reporting,
+          6. Confirmations,
+          7. Security.
+        type: string
+  reqHeaderAreaType:
+    type: object
+    additionalProperties: false
+    required:
+      - messageId
+    properties:
+      systemEnvironmentCode:
+        $ref: '#/definitions/systemEnvironmentEnum'
+      messageId:
+        description: Globally Unique Identifier (GUID)
+        type: string
+      context:
+        type: string
+  nameType:
+    type: object
+    additionalProperties: true
+    required:
+      - first
+      - last
+    properties:
+      prefix:
+        type: string
+      first:
+        type: string
+      last:
+        type: string
+      middle:
+        type: string
+      suffix:
+        type: string
+  contractType:
+    type: object
+    additionalProperties: true
+    required:
+      - number
+    properties:
+      number:
+        type: string
+      prefix:
+        type: string
+      extent:
+        type: string
+  respHeaderAreaType:
+    type: object
+    additionalProperties: true
+    required:
+      - messageId
+      - systemMessage
+    properties:
+      systemEnvironmentCode:
+        $ref: '#/definitions/systemEnvironmentEnum'
+      messageId:
+        description: |-
+
+          The MessageId provides a place to carry a Globally Unique Identifier (GUID) that will make each Schema instance uniquely identifiable.  
+          This is a critical success factor to enable software developers to use the Globally Unique Identifier (GUID) to build the following services or capabilities:
+          1. Legally binding transactions,
+          2. Transaction logging,
+          3. Exception handling,
+          4. Re-sending,
+          5. Reporting,
+          6. Confirmations,
+          7. Security.
+        type: string
+      systemMessage:
+        type: array
+        items:
+          $ref: '#/definitions/systemMessageType'
+  mbrTotals:
+    description: Member Totals Info for this member
+    type: object
+    additionalProperties: true
+    required:
+      - ctrctDedMax
+      - ctrctDedRemain
+      - ctrctOOPMax
+      - ctrctOOPRemain
+      - mbrDedMax
+      - mbrDedRemain
+      - mbrOOPMax
+      - mbrOOPRemain
+      - mbrCoins
+    properties:
+      ctrctDedMax:
+        description: contract deductible maximum
+        type: string
+      ctrctDedRemain:
+        description: contract deductble remaining
+        type: string
+      ctrctOOPMax:
+        description: contract out of pocket
+        type: string
+      ctrctOOPRemain:
+        description: contract out of pocket
+        type: string
+      mbrDedMax:
+        description: member deductible maximum
+        type: string
+      mbrDedRemain:
+        description: member deductble remaining
+        type: string
+      mbrOOPMax:
+        description: member out of pocket
+        type: string
+      mbrOOPRemain:
+        description: member  out of pocket
+        type: string
+      mbrCoins:
+        description: member coinsurance
+        type: string
+  addressType:
+    description: address details for the member
+    type: object
+    additionalProperties: true
+    properties:
+      street1:
+        description: street 1 for the address
+        type: string
+      street2:
+        description: street 2 for the address
+        type: string
+      city:
+        description: city for the address
+        type: string
+      stateCode:
+        description: state code for the address
+        type: string
+      country:
+        description: country for the address
+        type: string
+      postalCode:
+        description: 5 digit zip code for the address
+        type: string
+  otherBnftInfoType:
+    description: Benefit info specific data for the particular benefit code
+    type: object
+    additionalProperties: true
+    required:
+      - bnftIndicator
+      - limitsOverrides
+    properties:
+      message:
+        type: array
+        items:
+          description: message associated with the benefit code
+          type: string
+      bnftIndicator:
+        description: Benefit Indicator
+        type: string
+      type:
+        description: optional benefit type indicator such as IND
+        type: string
+      limitsOverrides:
+        type: array
+        maxItems: 100
+        minItems: 1
+        items:
+          $ref: '#/definitions/loType'
+  ctrctCOBInfo:
+    description: contract COB Information
+    type: object
+    additionalProperties: true
+    required:
+      - otherCovInd
+      - otherCovDate
+      - divorceInd
+      - letterInqSentDate
+      - letterInqRecDate
+      - letterInqReturnInd
+      - freeFormComment
+      - liabilityCd
+      - privacyLevel
+      - courtOrderEffDt
+      - courtOrderExpDt
+      - courtOrderind
+      - noOfOtherCov
+      - relPendingClaimInd
+      - lastActivityDt
+      - lastActivityEx
+    properties:
+      otherCovInd:
+        description: Other converage Indicator
+        type: string
+      otherCovDate:
+        description: Other converage date
+        type: string
+      divorceInd:
+        description: Divorce Indicator
+        type: string
+      letterInqSentDate:
+        description: Leter enquiry sent date for COB
+        type: string
+        format: date
+      letterInqRecDate:
+        description: Leter enquiry receveieved date for COB
+        type: string
+        format: date
+      letterInqReturnInd:
+        description: Leter enquiry return Indicator  for COB
+        type: string
+      cobRuleEffDate:
+        description: COB Rule effective Date
+        type: string
+        format: date
+      cobExpDate:
+        description: COB Rule expiry Date
+        type: string
+        format: date
+      cobRuleInd:
+        description: COB Rule Indicator
+        type: string
+      cobOption:
+        description: COB option indicator
+        type: string
+      freeFormComment:
+        description: free form comments if any
+        type: string
+      liabilityCd:
+        description: liability code
+        type: string
+      privacyLevel:
+        description: Privacy code
+        type: string
+      courtOrderEffDt:
+        description: court Order effective date
+        type: string
+        format: date
+      courtOrderExpDt:
+        description: court Order expiry date
+        type: string
+        format: date
+      courtOrderind:
+        description: court Order indicator
+        type: string
+      noOfOtherCov:
+        description: number of other coverages
+        type: string
+      relPendingClaimInd:
+        description: Release Pending claims indicator
+        type: string
+      lastActivityDt:
+        description: last activity date
+        type: string
+        format: date-time-only
+      lastActivityEx:
+        description: last activity examiner
+        type: string
+  cobSubscriberInfo:
+    description: COB Subscriber details
+    type: object
+    additionalProperties: true
+    required:
+      - subscriberID
+      - ssn
+      - name
+      - dob
+      - gender
+      - address
+    properties:
+      subscriberID:
+        description: subscriber contract ID
+        type: string
+      ssn:
+        description: SSN for the subscriber
+        type: string
+      name:
+        description: Name of the subscriber
+        type: object
+        additionalProperties: true
+        required:
+          - first
+          - last
+        properties:
+          suffix:
+            type: string
+          prefix:
+            type: string
+          first:
+            type: string
+          last:
+            type: string
+          middle:
+            type: string
+      dob:
+        description: DOB for the subscriber
+        type: string
+      gender:
+        description: Date of Birth for the subscriber
+        type: string
+      address:
+        type: array
+        maxItems: 3
+        minItems: 0
+        items:
+          $ref: '#/definitions/addressType'
+      phoneNbr:
+        description: Phone number
+        type: string
+      noSpouseInd:
+        description: No spouse indicator
+        type: string
+      spouseFirstInit:
+        description: Spouse first initial
+        type: string
+      spouseDOB:
+        description: Spouse Date of Birth
+        type: string
+  cobOtherCovInfo:
+    description: COB Other Coverage Info
+    type: object
+    additionalProperties: true
+    required:
+      - cobEffDate
+      - cobEexpDate
+      - mbrInfo
+      - contract
+      - ctrtType
+      - group
+      - ssn
+      - mbrCoverageInd
+      - spouseCovInd
+      - dependentcovInd
+      - lob
+      - otherCarrier
+    properties:
+      cobEffDate:
+        description: Effective date of COB
+        type: string
+        format: date
+      cobEexpDate:
+        description: expiry date of COB
+        type: string
+        format: date
+      mbrInfo:
+        description: Member demographic info
+        type: object
+        additionalProperties: true
+        required:
+          - personInfo
+        properties:
+          relCode:
+            type: string
+          personInfo:
+            type: object
+            additionalProperties: true
+            required:
+              - name
+              - dob
+            properties:
+              name:
+                $ref: '#/definitions/nameType_2'
+              dob:
+                type: string
+              gender:
+                type: string
+          mbrID:
+            type: string
+      contract:
+        description: Contract number
+        type: object
+        additionalProperties: true
+        required:
+          - number
+        properties:
+          extent:
+            type: string
+          prefix:
+            type: string
+          number:
+            type: string
+      ctrtType:
+        description: contract type
+        type: string
+      group:
+        description: Group Number
+        type: string
+      ssn:
+        description: SSN for the member
+        type: string
+      mbrCoverageInd:
+        description: member coverage indicator
+        type: string
+      spouseCovInd:
+        description: spouse coverage indicator
+        type: string
+      dependentcovInd:
+        description: spouse coverage indicator
+        type: string
+      lob:
+        description: LOB Indicator
+        type: string
+      courtOrderInd:
+        description: Court Order Indicator
+        type: string
+      courtOrderEffDate:
+        description: Court Order effective date
+        type: string
+        format: date
+      courtOrderExpDate:
+        description: Court Order effective date
+        type: string
+        format: date
+      otherCarrier:
+        $ref: '#/definitions/otherCarrier'
+  systemEnvironmentEnum:
+    description: Indicates the environment in which to run the operation through.\nThis has multiple values to cover current and future TERI runways.\nPromotions normally move from TEST to SIT to QA/E2E to PROD.
+    enum:
+      - PROD
+      - QA
+      - E2E
+      - E2E2
+      - E2E3
+      - E2E4
+      - E2E5
+      - E2E6
+      - E2E7
+      - E2E8
+      - E2E9
+      - E2E10
+      - SIT
+      - SIT2
+      - SIT3
+      - SIT4
+      - SIT5
+      - SIT6
+      - SIT7
+      - SIT8
+      - SIT9
+      - SIT10
+      - TEST
+      - TEST2
+      - TEST3
+      - TEST4
+      - TEST5
+      - TEST6
+      - TEST7
+      - TEST8
+      - TEST9
+      - TEST10
+    example: QA
+    type: string
+  systemMessageType:
+    description: Informational element that is used to provide an indication toward the effectiveness of the request processing.
+    type: object
+    additionalProperties: false
+    required:
+      - source
+      - code
+    properties:
+      source:
+        description: 'Name of the back-end system, which is the source of information'
+        type: string
+      code:
+        description: Code representation of an attribute
+        type: string
+      subCode:
+        description: Code from any other system
+        type: string
+      additionalInfo:
+        description: 'Additional technical information.  This field should be used instead of appending information to the general Description associated with the Code. '
+        type: string
+  loType:
+    description: Limits and overrides section for the specific benefit code
+    type: object
+    additionalProperties: true
+    required:
+      - loCode
+      - limitationInd
+      - limitation
+      - patientLiab
+    properties:
+      loCode:
+        description: lo code for this limits and override
+        type: string
+      limitationInd:
+        description: limitations indicator such single letter F
+        type: string
+      limitation:
+        type: array
+        maxItems: 100
+        minItems: 0
+        items:
+          $ref: '#/definitions/items'
+      placeOfSrvc:
+        description: Place of service
+        type: string
+      patientLiab:
+        $ref: '#/definitions/patientLiab'
+  otherCarrier:
+    description: Other Carrier Details
+    type: object
+    additionalProperties: true
+    required:
+      - code
+      - name
+      - address
+      - phone
+      - contactName
+      - employmentInfo
+      - groupNumber
+      - groupSuffix
+      - lastActDate
+    properties:
+      code:
+        description: Other Carrier code
+        type: string
+      name:
+        description: Other Carrier name
+        type: string
+      address:
+        description: Other carrier address
+        type: object
+        additionalProperties: true
+        properties:
+          country:
+            description: country for the address
+            type: string
+          stateCode:
+            description: state code for the address
+            type: string
+          street2:
+            description: street 2 for the address
+            type: string
+          city:
+            description: city for the address
+            type: string
+          postalCode:
+            description: 5 digit zip code for the address
+            type: string
+          street1:
+            description: street 1 for the address
+            type: string
+      phone:
+        description: phone number
+        type: string
+      contactName:
+        description: Contact Person name
+        type: string
+      cobRuleInd:
+        description: COB Rule Indicators if any
+        type: string
+      cobRuleEffDate:
+        description: COB rule effective date
+        type: string
+        format: date
+      cobRuleExpDate:
+        description: COB rule expiry date
+        type: string
+        format: date
+      employmentInfo:
+        $ref: '#/definitions/employmentInfo'
+      groupNumber:
+        description: Group Number
+        type: string
+      groupSuffix:
+        description: Group Suffix
+        type: string
+      lastActDate:
+        description: last activity date
+        type: string
+        format: date
+      lastExaminer:
+        description: last examiner
+        type: string
+  nameType_2:
+    type: object
+    additionalProperties: true
+    required:
+      - first
+      - last
+    properties:
+      prefix:
+        type: string
+      first:
+        type: string
+      last:
+        type: string
+      middle:
+        type: string
+      suffix:
+        type: string
+  patientLiab:
+    description: patient liability info
+    type: object
+    additionalProperties: true
+    properties:
+      copay:
+        $ref: '#/definitions/copay'
+      deductible:
+        $ref: '#/definitions/deductible'
+      coinsurance:
+        $ref: '#/definitions/coinsurance'
+      message:
+        type: array
+        maxItems: 100
+        minItems: 0
+        items:
+          description: Message Type for this patient liability section
+          type: string
+  items:
+    description: limitaitons details for this LO code
+    type: object
+    additionalProperties: true
+    required:
+      - networkInd
+      - limitPlanDesc
+      - timeQualifier
+      - quantityDesc
+      - quantity
+      - remainQty
+      - maxDollars
+      - remainMaxDollars
+      - freqOfBnfts
+    properties:
+      networkInd:
+        description: network indicator for this limitation
+        type: string
+      limitPlanDesc:
+        description: limitation plan description such as COMMERCIAL for this LO code
+        type: string
+      timeQualifier:
+        description: Time qualifier for this LO code
+        type: string
+      quantityDesc:
+        description: quantity description for this LO code
+        type: string
+      quantity:
+        description: quantity value for this LO code
+        type: string
+      remainQty:
+        description: remaining quantity value for this LO code
+        type: string
+      maxDollars:
+        description: max dollars
+        type: string
+      remainMaxDollars:
+        description: remain max dollars
+        type: string
+      freqOfBnfts:
+        $ref: '#/definitions/freqOfBnfts'
+      limitMsg:
+        type: array
+        maxItems: 100
+        minItems: 0
+        items:
+          description: Message array for this limitation
+          type: string
+      specificPrvdr:
+        description: ''
+        type: string
+  employmentInfo:
+    description: employment type details
+    type: object
+    additionalProperties: true
+    required:
+      - emplStat
+    properties:
+      emplStat:
+        description: employment status
+        type: string
+      emplStartDate:
+        description: Employment start date
+        type: string
+        format: date
+      emplEndDate:
+        description: Employment end date
+        type: string
+        format: date
+      emplAddress:
+        description: Address of the employer
+        type: object
+        additionalProperties: true
+        properties:
+          country:
+            description: country for the address
+            type: string
+          stateCode:
+            description: state code for the address
+            type: string
+          street2:
+            description: street 2 for the address
+            type: string
+          city:
+            description: city for the address
+            type: string
+          postalCode:
+            description: 5 digit zip code for the address
+            type: string
+          street1:
+            description: street 1 for the address
+            type: string
+  copay:
+    description: copay info
+    type: object
+    additionalProperties: true
+    required:
+      - networkInd
+    properties:
+      networkInd:
+        description: Network indicator
+        type: string
+      standardInd:
+        description: standard
+        type: string
+      dollarAmt:
+        type: string
+      copayQtyDesc:
+        description: copay Quantity description
+        type: string
+      copayQty:
+        description: copay quantity
+        type: string
+      copayTimeQ:
+        description: copay time qualifier
+        type: string
+      provType:
+        type: string
+      copayMsg:
+        type: array
+        maxItems: 100
+        minItems: 0
+        items:
+          description: message associated with co-pay
+          type: string
+      specificPrvdr:
+        type: string
+      precertInd:
+        description: precertification indicator
+        type: string
+  deductible:
+    description: coinsurance info
+    type: object
+    additionalProperties: true
+    required:
+      - networkInd
+      - maxDollars
+      - remainMaxDollars
+    properties:
+      networkInd:
+        description: Network indicator
+        type: string
+      maxDollars:
+        description: max dollars
+        type: string
+      remainMaxDollars:
+        description: remain max dollars
+        type: string
+      noOfMbrs:
+        type: string
+      dedPeriod:
+        description: deductible period
+        type: string
+      dedMsg:
+        type: array
+        maxItems: 100
+        minItems: 0
+        items:
+          description: message associated with deductible
+          type: string
+      specificPrvdr:
+        type: string
+      precertInd:
+        description: precertification indicator
+        type: string
+  coinsurance:
+    description: coinsurance info
+    type: object
+    additionalProperties: true
+    required:
+      - networkInd
+    properties:
+      networkInd:
+        description: Network indicator
+        type: string
+      standardInd:
+        description: standard
+        type: string
+      percentage:
+        type: string
+      coinsQtyDesc:
+        description: coinsurance Quantity description
+        type: string
+      coinsQty:
+        description: coinsurance quantity
+        type: string
+      coinsTimeQ:
+        description: coinsurance time qualifier
+        type: string
+      coinsMsg:
+        type: array
+        maxItems: 100
+        minItems: 0
+        items:
+          description: message associated with coinsurance
+          type: string
+      specificPrvdr:
+        type: string
+      precertInd:
+        description: precertification indicator
+        type: string
+  freqOfBnfts:
+    description: Frequency of benefits data for this LO code
+    type: object
+    additionalProperties: true
+    properties:
+      bnftQty:
+        type: object
+        additionalProperties: true
+        required:
+          - bnftQualifier
+          - bnftQty
+        properties:
+          bnftQualifier:
+            description: Benefit qualifier
+            type: string
+          bnftQty:
+            description: Benefit qualifier
+            type: string
+      deliveryPlan:
+        type: object
+        additionalProperties: true
+        required:
+          - unitOfMeasure
+          - unitOfMeasureQty
+        properties:
+          unitOfMeasure:
+            description: Unit of measure for this benefit
+            type: string
+          unitOfMeasureQty:
+            description: Unit of measure quantity for this benefit
+            type: string
+      duration:
+        type: object
+        additionalProperties: true
+        required:
+          - timeQualifier
+          - periodCnt
+        properties:
+          timeQualifier:
+            description: time qualifier
+            type: string
+          periodCnt:
+            description: period count for this benefit
+            type: string
+      frequencyCd:
+        description: frequency code
+        type: string
+      deliveryPtrn:
+        description: Devlivery Pattern
+        type: string
